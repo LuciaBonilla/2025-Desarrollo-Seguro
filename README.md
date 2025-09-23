@@ -74,20 +74,7 @@ docker compose up -d postgres mailhog
 #### 2) Crear `.env` en `services/backend`
 ```ini
 # services/backend/.env
-PORT=5000
-DB_HOST=localhost
-DB_USER=user
-DB_PASS=password
-DB_NAME=jwt_api
-DB_PORT=5432
-
-SMTP_HOST=localhost
-SMTP_PORT=1025
-SMTP_USER=seed
-SMTP_PASS=seed
-
-FRONTEND_URL=http://localhost:3000
-```
+# Usa .env.example como referencia para saber que varibles debes de tener configuradas como variables de entorno. 
 
 ---
 
