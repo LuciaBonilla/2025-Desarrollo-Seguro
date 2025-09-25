@@ -14,7 +14,7 @@ interface InvoiceRow {
 }
 
 class InvoiceService {
-  static async list( userId: string, status?: string): Promise<Invoice[]> {
+  static async list(userId: string, status?: string): Promise<Invoice[]> {
     let q = db<InvoiceRow>('invoices').where({ userId: userId });
     if (status) q = q.andWhere('status', '=', status);
     const rows = await q.select();
@@ -23,7 +23,8 @@ class InvoiceService {
       userId: row.userId,
       amount: row.amount,
       dueDate: row.dueDate,
-      status: row.status} as Invoice
+      status: row.status
+    } as Invoice
     ));
     return invoices;
   }
@@ -39,6 +40,11 @@ class InvoiceService {
     // use axios to call http://paymentBrand/payments as a POST request
     // with the body containing ccNumber, ccv, expirationDate
     // and handle the response accordingly
+    const allowedBrands = ["visa", "mastercard", "prex"];
+
+    if (!allowedBrands.includes(paymentBrand)) {
+      throw new Error("Payment brand not allowed");
+    }
     const paymentResponse = await axios.post(`http://${paymentBrand}/payments`, {
       ccNumber,
       ccv,
@@ -51,8 +57,8 @@ class InvoiceService {
     // Update the invoice status in the database
     await db('invoices')
       .where({ id: invoiceId, userId })
-      .update({ status: 'paid' });  
-    };
+      .update({ status: 'paid' });
+  };
 
   static async getInvoice(invoiceId: string, userId: string): Promise<Invoice> {
     const invoice = await db<InvoiceRow>('invoices')
@@ -85,7 +91,7 @@ class InvoiceService {
       console.error('Error reading receipt file:', error);
       throw new Error('Receipt not found');
 
-    } 
+    }
   };
 
 };
