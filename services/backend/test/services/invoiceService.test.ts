@@ -32,6 +32,7 @@ describe('AuthService.generateJwt', () => {
     const selectChain = {
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
+      andWhereRaw: jest.fn().mockReturnThis(),
       select: jest.fn().mockResolvedValue(mockInvoices),
     };
     mockedDb.mockReturnValue(selectChain as any);
@@ -39,7 +40,7 @@ describe('AuthService.generateJwt', () => {
     const invoices = await InvoiceService.list(userId, state, operator);
 
     expect(mockedDb().where).toHaveBeenCalledWith({ userId });
-    expect(mockedDb().andWhere).toHaveBeenCalledWith('state', operator, state);
+    expect(mockedDb().andWhereRaw).toHaveBeenCalledWith(" status " + operator +" 'paid'");
     expect(mockedDb().select).toHaveBeenCalled();
     expect(invoices).toEqual(mockInvoices);
   });
