@@ -377,7 +377,7 @@ describe('AuthService.security', () => {
     *Locación: services\backend\src\services\authService.ts
 
     *Entrada:
-      Un usuario con first_name: '<%= {4*4} %>'
+      Un usuario con first_name: '<%= 4*4 %>'
       Esta entrada se utiliza porque el código a testear ejecuta funciones del paquete de npm:
       'ejs' (Embedded JavaScript templates).
       Más información en: https://www.npmjs.com/package/ejs
@@ -417,7 +417,7 @@ describe('AuthService.security', () => {
         id: 'user-123',
         email: 'a@a.com',
         password: 'password123',
-        first_name: '<%= {4*4} %>', // Entrada maliciosa.
+        first_name: '<%= 4*4 %>', // Entrada maliciosa.
         last_name: 'Last',
         username: 'username',
       } as User;
@@ -469,7 +469,7 @@ describe('AuthService.security', () => {
         // 2.2. Verifica que a la función de enviar email no le haya llegado el html con el código ejecutado.
         const [mail] = transporter.sendMail.mock.calls[0];
         expect(mail.html).not.toContain('16');                 // Verifica que el código no se haya ejecutado.
-        expect(mail.html).toContain('&lt;%= {4*4} %&gt;');     // Verifica que la entrada maliciosa haya sido sanitizada.
+        expect(mail.html).toContain('&lt;%= 4*4 %&gt;');     // Verifica que la entrada maliciosa haya sido sanitizada.
       }
   }
   );
