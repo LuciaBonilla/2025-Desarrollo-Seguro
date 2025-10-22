@@ -66,12 +66,11 @@ describe('AuthService.generateJwt', () => {
     });
 
     expect(nodemailer.createTransport).toHaveBeenCalled();
-    expect(nodemailer.createTransport().sendMail).toHaveBeenCalledWith(expect.objectContaining({
-      from: "info@example.com",
+    expect(nodemailer.createTransport().sendMail).toHaveBeenCalledWith({
       to: user.email,
       subject: 'Activate your account',
-      html: expect.stringContaining('Click <a href=')
-    }));
+      html: expect.stringContaining('Click <a href="')
+    });
   }
   );
 
@@ -158,7 +157,7 @@ describe('AuthService.generateJwt', () => {
 
     // Call the method to test
     const user = await AuthService.authenticate(email, password);
-    expect(getUserChain.where).toHaveBeenCalledWith({username : 'username'});
+    expect(getUserChain.where).toHaveBeenCalledWith({email : 'username'});
     expect(user).toBeDefined();
   });
 
@@ -189,7 +188,7 @@ describe('AuthService.generateJwt', () => {
     mockedDb.mockReturnValueOnce(getUserChain as any);
 
     // Call the method to test
-    await expect(AuthService.authenticate('username', 'password123')).rejects.toThrow('Invalid username or not activated');
+    await expect(AuthService.authenticate('username', 'password123')).rejects.toThrow('Invalid email or not activated');
   });
 
   it('sendResetPasswordEmail', async () => {
@@ -317,8 +316,7 @@ describe('AuthService.generateJwt', () => {
     expect(updateChain.update).toHaveBeenCalledWith({
       password: password,
       invite_token: null,
-      invite_token_expires: null,
-      activated:true
+      invite_token_expires: null
     });
 
     expect(updateChain.where).toHaveBeenCalledWith({ id: user_id });
@@ -350,4 +348,129 @@ describe('AuthService.generateJwt', () => {
     expect((decoded as any).id).toBe(userId);
   });
 
+});
+
+/*
+  Repertorio de tests para verificar que las vulnerabilidades halladas en el
+  práctico 2 fueron mitigadas.
+*/
+describe('AuthService.security', () => {
+  beforeEach (() => {
+    jest.resetModules();
+    jest.clearAllMocks();
+
+  });
+
+    /*
+    *Descripción:
+      Prueba unitaria que valida la mitigación del Template Code Injection
+      identificado en la funcionalidad de envío de correo al crear un nuevo
+      usuario.
+
+    *Procedimiento:
+      Para validar la mitigación se verifica que el contenido del correo de
+      creación de cuenta no tenga el resultado de la ejecución del código pasado
+      como entrada de usuario, o bien que el correo no sea creado ante esa
+      entrada maliciosa.
+
+    *Función a testear: AuthService.createUser(user: User)
+    *Locación: services\backend\src\services\authService.ts
+
+    *Entrada:
+      Un usuario con first_name: '<%= {4*4} %>'
+      Esta entrada se utiliza porque el código a testear ejecuta funciones del paquete de npm:
+      'ejs' (Embedded JavaScript templates).
+      Más información en: https://www.npmjs.com/package/ejs
+
+    *Resultado positivo:
+      Dada la entrada, no se crea un correo con el valor 16,
+      lo cual significa que el código NO es ejecutado en el lado del servidor.
+
+    *Resultado negativo:
+      Dada la entrada, se crea un correo con el valor 16,
+      lo cual significa que el código SÍ es ejecutado en el lado del servidor.
+
+    * La función se basa en el test 'createUser' provisto por los profesores;
+      se utilizó ese test y se hicieron modificaciones.
+
+    * Se empleó la documentación de JEST: https://jestjs.io/docs/next/api
+
+    * Además, se uso la ayuda de ChatGPT para entender a profundidad el código brindado por los profesores.
+
+    * Funciones utilizadas de JEST:
+    * test(name, fn, timeout)                         -> https://jestjs.io/docs/next/api#testname-fn-timeout
+    * jest.fn(implementation?)                        -> https://jestjs.io/docs/next/mock-function-api#jestfnimplementation
+    * jest.fn().mockReturnThis()                      -> https://jestjs.io/docs/next/mock-function-api#mockfnmockreturnthis
+    * jest.fn().mockResolvedValue(value)              -> https://jestjs.io/docs/next/mock-function-api#mockfnmockresolvedvaluevalue
+    * jest.fn().mockReturnValue(value)                -> https://jestjs.io/docs/next/mock-function-api#mockfnmockreturnvaluevalue
+    * mockedDb.mockReturnValueOnce(value)             -> https://jestjs.io/docs/next/mock-function-api#mockfnmockreturnvalueoncevalue
+    * expect(value)                                   -> https://jestjs.io/docs/next/expect#expectvalue
+    * expect().toHaveBeenCalledWith(arg1, arg2, ...)  -> https://jestjs.io/docs/next/expect#tohavebeencalledwitharg1-arg2-
+    * expect.any(constructor)                         -> https://jestjs.io/docs/next/expect#expectanyconstructor
+    * jest.fn().mock.calls                            -> https://jestjs.io/docs/next/mock-function-api#mockfnmockcalls
+    * expect().not                                    -> https://jestjs.io/docs/next/mock-function-api#mockfnmockcalls
+    * expect().toContain(item)                        -> https://jestjs.io/docs/next/expect#tocontainitem
+    */
+    test('No Template Code Injection in create user mail', async () => {
+      // ***Entrada:
+      const user  = {
+        id: 'user-123',
+        email: 'a@a.com',
+        password: 'password123',
+        first_name: '<%= 4*4 %>', // Entrada maliciosa.
+        last_name: 'Last',
+        username: 'username',
+      } as User;
+
+      // ***Preparación de funciones Mock (simulaciones de las funciones verdaderas) de la base de datos de mentira y de la de envío de correo.
+      
+      // 1. Simula un select en el que no existe usuario, es decir, se simula que crea por primera vez el usuario.
+      const selectChain = {
+        where: jest.fn().mockReturnThis(),        // Retorna undefined cuando se llama a la función .where({ username: user.username }) en la función a testear.
+        orWhere: jest.fn().mockReturnThis(),      // Al igual que where, retorna undefined cuando se llama a la función .orWhere({ email: user.email }) en la función a testear.
+        first: jest.fn().mockResolvedValue(null)  // Retorna null cuando se llama a la función .first() en la función a testear, porque simula que el usuario aún no está creado.
+      };
+
+      // 2. Simula un insert exitoso del usuario.
+      const insertChain = {
+        insert: jest.fn().mockResolvedValue([user]) // Retorna los datos del usuario cuando se llama a la función .insert({datos del usuario}) en la función a testear.
+      };
+
+      // 3. Simula la función asociada al envío de correo.
+      const transporter = { sendMail: jest.fn().mockResolvedValue({}) };       // Retorna {}, porque no interesa lo que retorna sino lo que recibe (el contenido del email).
+      (nodemailer.createTransport as jest.Mock).mockReturnValue(transporter);  // Simula la función de envío de correo.   
+
+      // 4. Asocia las funciones Mock a la base de datos de mentira; se ejecutarán en cadena (primero el select y luego el insert).
+      mockedDb
+      .mockReturnValueOnce(selectChain as any)
+      .mockReturnValueOnce(insertChain as any);
+
+      // *** Ejecución: Ejecuta el método a testear (se ejecutarán las funciones Mock, en lugar de las verdaderas).
+      await AuthService.createUser(user);
+
+      // *** Verificación:
+      // 1. Verifica que la base de datos de mentira realizó el insert con los parámetros dados.
+      expect(insertChain.insert).toHaveBeenCalledWith({
+        email: user.email,
+        password: expect.any(String),           // Sólo basta saber si es un string.
+        first_name: user.first_name,
+        last_name: user.last_name,
+        username: user.username,
+        activated: false,
+        invite_token: expect.any(String),       // Sólo basta saber si es un string.
+        invite_token_expires: expect.any(Date)  // Sólo basta saber si es una fecha.
+      });
+
+      // 2. Verificación del contenido del correo.
+      if (transporter.sendMail.mock.calls.length === 0) {
+        // 2.1. Email no creado (lo cual también está OK).
+        expect(transporter.sendMail).not.toHaveBeenCalled();
+      } else {
+        // 2.2. Verifica que a la función de enviar email no le haya llegado el html con el código ejecutado.
+        const [mail] = transporter.sendMail.mock.calls[0];
+        expect(mail.html).not.toContain('16');                 // Verifica que el código no se haya ejecutado.
+        expect(mail.html).toContain('&lt;%= 4*4 %&gt;');     // Verifica que la entrada maliciosa haya sido sanitizada.
+      }
+  }
+  );
 });
