@@ -377,7 +377,7 @@ describe('AuthService.security', () => {
     *Locación: services\backend\src\services\authService.ts
 
     *Entrada:
-      Un usuario con first_name: '<%= {4*4} %>'
+      Un usuario con first_name: '<%= 4*4 %>'
       Esta entrada se utiliza porque el código a testear ejecuta funciones del paquete de npm:
       'ejs' (Embedded JavaScript templates).
       Más información en: https://www.npmjs.com/package/ejs
