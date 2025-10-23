@@ -183,7 +183,8 @@ class AuthService {
       .update({
         password: hashed_input_password, // Guardar el dato hasheado en la base de datos.
         invite_token: null,
-        invite_token_expires: null
+        invite_token_expires: null,
+        activated: true
       })
       .where({ id: row.id });
   }
