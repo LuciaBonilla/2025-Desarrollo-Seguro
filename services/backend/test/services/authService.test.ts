@@ -259,7 +259,7 @@ describe('AuthService.generateJwt', () => {
       .mockReturnValueOnce(getUserChain as any)
       .mockReturnValueOnce(updateChain as any);
     // Call the method to test
-    await AuthService.resetPassword(token, newPassword);
+    await AuthService.resetPassword('username', token, newPassword);
     expect(getUserChain.where).toHaveBeenCalledWith('reset_password_token', token);
     expect(updateChain.update).toHaveBeenCalledWith({
       password: newPassword,
@@ -278,7 +278,7 @@ describe('AuthService.generateJwt', () => {
     mockedDb
       .mockReturnValueOnce(getUserChain as any);
     // Call the method to test
-    await expect(AuthService.resetPassword('invalid-token', 'newpassword123')).rejects.toThrow('Invalid or expired reset token');
+    await expect(AuthService.resetPassword('username', 'invalid-token', 'newpassword123')).rejects.toThrow('Invalid or expired reset token');
   });
 
   it('setInitialPassword', async () => {
@@ -310,7 +310,7 @@ describe('AuthService.generateJwt', () => {
       .mockReturnValueOnce(updateChain as any);
 
     // Call the method to test
-    await AuthService.setPassword(token, password);
+    await AuthService.setPassword('username', token, password);
 
     // Verify the database calls
     expect(updateChain.update).toHaveBeenCalledWith({
@@ -332,7 +332,7 @@ describe('AuthService.generateJwt', () => {
     mockedDb
       .mockReturnValueOnce(getUserChain as any);
     // Call the method to test
-    await expect(AuthService.setPassword('invalid-token', 'newpassword123')).rejects.toThrow('Invalid or expired invite token');
+    await expect(AuthService.setPassword('username', 'invalid-token', 'newpassword123')).rejects.toThrow('Invalid or expired invite token');
   });
 
   it('generateJwt', () => {

@@ -36,9 +36,9 @@ const forgotPassword = async (req: Request, res: Response, next: NextFunction) =
 };
 
 const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
-  const { token, newPassword } = req.body;
+  const { username, token, newPassword } = req.body;
   try {
-    await AuthService.resetPassword(token, newPassword);
+    await AuthService.resetPassword(username, token, newPassword);
     return res.sendStatus(204);
   } catch (err) {
     next(err);
@@ -46,9 +46,9 @@ const resetPassword = async (req: Request, res: Response, next: NextFunction) =>
 };
 
 const setPassword = async (req: Request, res: Response, next: NextFunction) => {
-  const { token, newPassword } = req.body;
+  const { username, token, newPassword } = req.body;
   try {
-    await AuthService.setPassword(token, newPassword);
+    await AuthService.setPassword(username, token, newPassword);
     return res.sendStatus(204);
   } catch (err) {
     next(err);

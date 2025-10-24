@@ -144,15 +144,16 @@ class AuthService {
     });
   }
 
-  static async resetPassword(token: string, newPassword: string) {
-    // Hashear token de reseteo de contraseña.
-    const hashed_input_reset_password_token = await hashUtils.hashPlainText(token);
-
+  static async resetPassword(username: string, token: string, newPassword: string) {
     const row = await db<UserRow>('users')
-      .where('reset_password_token', hashed_input_reset_password_token) // Comparar
+      .where({ username })
       .andWhere('reset_password_expires', '>', new Date())
       .first();
     if (!row) throw new Error('Invalid or expired reset token');
+
+    // Comparar tokens (el no hasheado y el que está en la base de datos hasheado).
+    const ok = await hashUtils.compareHashedPlainText(token, row.reset_password_token);
+    if (!ok) throw new Error('Invalid or expired reset token');
 
     // Hashear contraseña.
     const hashed_input_password = await hashUtils.hashPlainText(newPassword);
@@ -166,15 +167,16 @@ class AuthService {
       });
   }
 
-  static async setPassword(token: string, newPassword: string) {
-    // Hashear token de activación de cuenta.
-    const hashed_input_invite_token = await hashUtils.hashPlainText(token)
-
+  static async setPassword(username: string, token: string, newPassword: string) {
     const row = await db<UserRow>('users')
-      .where('invite_token', hashed_input_invite_token) // Comparar.
+      .where({ username })
       .andWhere('invite_token_expires', '>', new Date())
       .first();
     if (!row) throw new Error('Invalid or expired invite token');
+
+    // Comparar token (el no hasheado y el que está en la base de datos hasheado).
+    const ok = await hashUtils.compareHashedPlainText(token, row.invite_token);
+    if (!ok) throw new Error('Invalid or expired invite token');
 
     // Hashear contraseña.
     const hashed_input_password = await hashUtils.hashPlainText(newPassword)
