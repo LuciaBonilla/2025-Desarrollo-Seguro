@@ -8,6 +8,7 @@ import re
 # crear token
 MAILHOG_API = "http://localhost:8025/api/v2/messages"
 
+# --- Funciones auxiliares ---
 def get_last_email_body():
     resp = requests.get(MAILHOG_API)
     resp.raise_for_status()
@@ -30,6 +31,7 @@ def extract_query_params(url):
     m = patron.search(url)
     return m.group(1) if m else None
 
+# --- Fixtures ---
 @pytest.fixture(autouse=True)
 def setup_create_user():
     # random username
@@ -100,7 +102,7 @@ def test_sqli(setup_create_user):
     '''
 
     sqli_response = requests.get(
-    "http://localhost:5000/Invoices?status=' OR '1'='1&operator==",
+    "http://localhost:5000/Invoices?status=' OR (1/0)::int IS NOT NULL--", # divide entre 0, por lo que si SQLi no está mitigado, dará una excepción específica del DBMS.
     headers={"Authorization": f"Bearer {auth_token}"},
     )
 
