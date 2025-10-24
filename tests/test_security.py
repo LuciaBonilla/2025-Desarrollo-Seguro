@@ -8,7 +8,6 @@ import re
 # crear token
 MAILHOG_API = "http://localhost:8025/api/v2/messages"
 
-'''
 def get_last_email_body():
     resp = requests.get(MAILHOG_API)
     resp.raise_for_status()
@@ -42,9 +41,9 @@ def setup_create_user():
                         data={
                             "username": username, 
                             "password": password,
-                            "email":email,
-                            "first_name":"Name",
-                            "last_name": f'{username}son'
+                            "email":email,          # -> Sólo admite formato válido de correo.
+                            "first_name":"Name",    # -> Sólo admite letras.
+                            "last_name":"Lastname"  # -> Sólo admite letras.
                             })
     # user created
     assert salida.status_code == 201
@@ -54,8 +53,7 @@ def setup_create_user():
     token = extract_query_params(link)
 
     # activate user
-    response = requests.post("http://localhost:5000/auth/set-password", json={"token": token, "newPassword": password})
-
+    response = requests.post("http://localhost:5000/auth/set-password", json={"username": username, "token": token, "newPassword": password})
 
     return [username,password]
 
@@ -66,7 +64,6 @@ def test_login(setup_create_user):
     response = requests.post("http://localhost:5000/auth/login", json={"username": username, "password": password})
     auth_token = response.json()["token"]
     assert auth_token
-'''
 
 '''
 Teoría: Las pruebas de regresión son las que se encargan de probar todo el sistema.
@@ -83,11 +80,15 @@ el endpoint con el que vamos a trabajar necesitamos estar autenticados y autoriz
 
 En esta oportunidad al no afectar el create user ni el login tomé la decisión de comentar los mismos ya que no se requieren.
 '''
-def test_sqli():
+def test_sqli(setup_create_user):
     'Al igual que en el test dado obtenemos el token para poder realizar la consulta maliciosa '
     'autenticados y autorizados, utilizando un user y password conocido'
 
-    response = response = requests.post("http://localhost:5000/auth/login", json={"username": "test", "password": "password"})
+    'Crear usuario.'
+    username = setup_create_user[0]
+    password = setup_create_user[1]
+    
+    response = response = requests.post("http://localhost:5000/auth/login", json={"username": username, "password": password})
     auth_token = response.json()["token"]
     'Verifico que reciba el token'
     assert auth_token

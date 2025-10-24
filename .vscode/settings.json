@@ -1,4 +1,9 @@
 {
   "testing.automaticallyOpenPeekView": "never",
-  "jest.runMode": "on-demand"
+  "jest.runMode": "on-demand",
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }
