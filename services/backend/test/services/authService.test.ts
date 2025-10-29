@@ -433,7 +433,7 @@ describe('AuthService.security', () => {
 
       // 2. Simula un insert exitoso del usuario.
       const insertChain = {
-        insert: jest.fn().mockResolvedValue([user]) // Retorna los datos del usuario cuando se llama a la función .insert({datos del usuario}) en la función a testear.
+        insert: jest.fn().mockResolvedValue([user]) // Retorna los datos del usuario cuando se llama a la función .insert([{datos del usuario}]) en la función a testear.
       };
 
       // 3. Simula la función asociada al envío de correo.
@@ -468,7 +468,7 @@ describe('AuthService.security', () => {
       } else {
         // 2.2. Verifica que a la función de enviar email no le haya llegado el html con el código ejecutado.
         const [mail] = transporter.sendMail.mock.calls[0];
-        expect(mail.html).not.toContain('16');                 // Verifica que el código no se haya ejecutado.
+        expect(mail.html).not.toContain('16');               // Verifica que el código no se haya ejecutado.
         expect(mail.html).toContain('&lt;%= 4*4 %&gt;');     // Verifica que la entrada maliciosa haya sido sanitizada.
       }
   }
